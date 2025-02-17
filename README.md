@@ -1,6 +1,6 @@
 # Vite React Starter Template
 
-<div style="display: flex; justify-content: center; align-items: center;">
+<div align="center">
     <img src="https://vitejs.dev/logo.svg" alt="Vite Logo">
 </div>
 
