@@ -5,6 +5,7 @@ on:
     types: [opened, synchronize, reopened]
     branches:
       - main  # or the default branch of your repo
+  workflow_dispatch:
 
 jobs:
   merge:
