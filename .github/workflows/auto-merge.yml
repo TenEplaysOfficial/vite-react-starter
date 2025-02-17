@@ -3,12 +3,12 @@ name: Auto Merge Dependabot PRs
 on:
   pull_request:
     types: [opened, synchronize, reopened]
+  workflow_dispatch:
 
 jobs:
   merge:
     runs-on: ubuntu-latest
     steps:
-      # Step 1: Check if the PR is from dependabot
       - name: Check if PR is from Dependabot
         id: check_dependabot
         run: |
@@ -20,18 +20,14 @@ jobs:
             echo "::set-output name=mergeable::false"
           fi
 
-      # Step 2: Wait for all status checks to pass (optional)
       - name: Wait for status checks to pass
         if: steps.check_dependabot.outputs.mergeable == 'true'
         run: |
           echo "Waiting for status checks to pass..."
           sleep 15  # or use GitHub API to check status checks
 
-      # Step 3: Auto-merge the PR if it’s from Dependabot and all checks pass
       - name: Auto-merge PR
         if: steps.check_dependabot.outputs.mergeable == 'true'
         uses: "pascalgn/automerge-action@v0.15.0"
         with:
           merge-method: "squash"  # Use "merge" or "rebase" depending on your preference
-          # Optional: Add conditions such as checking if the PR title matches certain criteria
-          # pr-title-regex: "^Bump .*"
