@@ -3,43 +3,19 @@ name: Auto Merge Dependabot PRs
 on:
   pull_request:
     types: [opened, synchronize, reopened]
-  issue_comment:
-    types: [created]  # Trigger when a comment is created, like @dependabot rebase
-  workflow_dispatch:  # Allow manual triggering
+    branches:
+      - main  # or the default branch of your repo
 
 jobs:
   merge:
     runs-on: ubuntu-latest
+    if: github.actor == 'dependabot[bot]' # Ensure the PR is from Dependabot
+
     steps:
-      # Step 1: Check if PR is from Dependabot
-      - name: Check if PR is from Dependabot
-        id: check_dependabot
-        run: |
-          if [[ "$GITHUB_ACTOR" == "dependabot[bot]" ]]; then
-            echo "This PR is from Dependabot."
-            echo "::set-output name=mergeable::true"
-          else
-            echo "This PR is not from Dependabot."
-            echo "::set-output name=mergeable::false"
-          fi
+    - name: Checkout repository
+      uses: actions/checkout@v3
 
-      - name: Wait for status checks if no checks are present
-        if: steps.check_dependabot.outputs.mergeable == 'true' && !github.event.pull_request.statuses
-        run: |
-          echo "No checks present, waiting for Dependabot to resolve conflicts (if any)."
-          sleep 30  # Adjust based on your needs
-
-      - name: Check for rebase comment
-        if: github.event.comment.body == '@dependabot rebase'
-        run: |
-          echo "Rebase requested, triggering rebase."
-          # Trigger rebase via GitHub API or use a rebase action
-          curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            -d '{"event":"rebase"}' \
-            "https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/reviews"
-
-      - name: Auto-merge PR
-        if: steps.check_dependabot.outputs.mergeable == 'true'
-        uses: "pascalgn/automerge-action@v0.15.0"
-        with:
-          merge-method: "squash"  # You can change to "merge" or "rebase"
+    - name: Merge PR
+      run: gh pr merge ${{ github.event.pull_request.number }} --merge --auto
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
